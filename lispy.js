@@ -1,4 +1,3 @@
-let array = []
 function removeSpace (input) {
   var first = input.search(/\S/)
   if (first === -1) {
@@ -6,6 +5,7 @@ function removeSpace (input) {
   }
   return input.slice(first)
 }
+
 function numberParser (value) {
   let expression = /^[-]?[0-9]+(\.[0-9]+(?:[Ee][+-]?[0-9]+)?)?/
   //  /^[+-]?([0-9]*\.?[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?/
@@ -15,15 +15,16 @@ function numberParser (value) {
   else return null
 }
 
-let objEval = {
+let Env = {
   '+': function add (input) {
     return input.reduce((acc, cur) => {
-      return parseInt(acc + cur)
+      // console.log(cur)
+      return parseFloat(acc + cur)
     })
   },
   '-': function minus (input) {
     return input.reduce((acc, cur) => {
-      return parseInt(acc - cur)
+      return (acc - parseFloat(cur))
     })
   },
   '*': function multiple (input) {
@@ -48,26 +49,33 @@ function evalExpressions (input) {
   input = input.slice(1)
   input = removeSpace(input)
   let result = identifier(input)
-  //   console.log(result)
-  if (objEval.hasOwnProperty(result)) {
-    return operator(input)
-  }
+  if (Env.hasOwnProperty(result)) { return operator(input) }
 }
-console.log(evalExpressions('(+ 1 2)'))
+console.log(evalExpressions('( + 1 (+ 1 2) ( + 1 1))'))
 
 function identifier (input) {
   let result = input.slice(0, 1)
   return result
 }
+
 function operator (input) {
   let result = input.slice(0, 1)
   input = input.slice(1)
-  while (input[0] !== ')') {
-    if (input.startsWith('(')) return evalExpressions(input)
-    input = removeSpace(input)
-    let num = numberParser(input)
-    array.push(num[0])
-    input = removeSpace(num[1])
+  input = removeSpace(input)
+  // console.log(input)
+  let array = []
+  while (!input.startsWith(')')) {
+    if (input.startsWith('(')) {
+      let values = evalExpressions(input)
+      array.push(values)
+      input = input.slice((input.indexOf(')') + 1), input.length)
+      input = removeSpace(input)
+    } else {
+      let num = numberParser(input)
+      array.push(num[0])
+      input = input.slice(1)
+      input = removeSpace(num[1])
+    }
   }
-  return objEval[result](array)
+  return Env[result](array)
 }
