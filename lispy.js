@@ -74,6 +74,9 @@ let Env = {
       return (acc <= cur)
     })
   },
+  'sqrt': function sqrt (input) {
+    return Math.sqrt(input)
+  },
   'pi': Math.PI
 }
 
@@ -85,7 +88,7 @@ function evalExpressions (input) {
   let result = identifier(input)
   if (Env.hasOwnProperty(result)) { return operator(input) } else { return specialFunction(input) }
 }
-console.log(evalExpressions('(if (> 2 1 ) (+ 1 (+ 1 1 ) ) (+ 1 3 ) )'))
+console.log(evalExpressions('(sqrt (* 2 8))'))
 
 function identifier (input) {
   let result = input.slice(0, input.indexOf(' '))
@@ -93,8 +96,8 @@ function identifier (input) {
 }
 
 function operator (input) {
-  let result = input.slice(0, 1)
-  input = input.slice(1)
+  let result = input.slice(0, input.indexOf(' '))
+  input = input.slice(input.indexOf(' '), input.length)
   input = removeSpace(input)
   // console.log(input)
   let array = []
@@ -118,7 +121,7 @@ function operator (input) {
 
 function specialFunction (input) {
   if (input.startsWith('if')) return ifParser(input)
-  if (input.startsWith('define')) return parserDef(input)
+  if (input.startsWith('define')) return defineParser(input)
 }
 
 /// /// if //////////////
@@ -136,4 +139,15 @@ function ifParser (input) {
   let value2 = evalExpressions(input)
 
   if (condiCheck === true) { return value1 } else { return value2 }
+}
+
+function defineParser (input) {
+  input = input.slice(6)
+  input = removeSpace(input)
+  let key = stringParser(input)
+  // input = inpu(1)
+  input = removeSpace(key[1])
+  let defvalue = numberParser(input)
+  Env[key[0]] = defvalue[0]
+  return 'property added in Env'
 }
