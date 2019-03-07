@@ -86,9 +86,13 @@ function evalExpressions (input) {
   input = input.slice(1)
   input = removeSpace(input)
   let result = identifier(input)
-  if (Env.hasOwnProperty(result)) { return operator(input) } else { return specialFunction(input) }
+  if (Env.hasOwnProperty(result)) {
+    return operator(input)
+  } else {
+    return specialFunction(input)
+  }
 }
-console.log(evalExpressions('(sqrt (* 2 8))'))
+console.log(evalExpressions('(quote 6'))
 
 function identifier (input) {
   let result = input.slice(0, input.indexOf(' '))
@@ -122,6 +126,7 @@ function operator (input) {
 function specialFunction (input) {
   if (input.startsWith('if')) return ifParser(input)
   if (input.startsWith('define')) return defineParser(input)
+  if (input.startsWith('quote')) return quoteParser(input)
 }
 
 /// /// if //////////////
@@ -138,7 +143,11 @@ function ifParser (input) {
   input = removeSpace(input)
   let value2 = evalExpressions(input)
 
-  if (condiCheck === true) { return value1 } else { return value2 }
+  if (condiCheck === true) {
+    return value1
+  } else {
+    return value2
+  }
 }
 
 function defineParser (input) {
@@ -150,4 +159,38 @@ function defineParser (input) {
   let defvalue = numberParser(input)
   Env[key[0]] = defvalue[0]
   return 'property added in Env'
+}
+
+// function quoteParser (input) {
+//   let result = ''
+//   input = input.slice(5)
+//   input = removeSpace(input)
+//   if (input[1].startsWith('(')) {
+//     while (!input.startsWith(')')) {
+//     // input = input.slice(1)
+//       if (input.startsWith('(')) { result += input.slice(0, input.indexOf(')') + 1) }
+//       input = input.slice((input.indexOf(')') + 1), input.length)
+//       input = removeSpace(input)
+//     }
+//     return result + ')'
+//   }
+//   return null
+// }
+
+function quoteParser (input) {
+  input = input.slice(5)
+  let opCount = 0
+  let clCount = 0
+  input = removeSpace(input)
+  if (input.startsWith('(')) {
+    for (let i = 0; i < input.length; i++) {
+      if (input[i] === '(') {
+        opCount++
+      } else if (input[i] === ')') {
+        clCount++
+      }
+    }
+    if (opCount === (clCount - 1)) { return input.slice(0, input.length - 1) } else { return 'invalid quote' }
+  }
+  return input
 }
