@@ -92,7 +92,7 @@ function evalExpressions (input) {
     return specialFunction(input)
   }
 }
-console.log(evalExpressions('(quote 6'))
+console.log(evalExpressions('(+ 2 (+ 1 2) (+ 2 5) (+ 1 2) (+ 3 2) (+ 10 (+ 5 5)))'))
 
 function identifier (input) {
   let result = input.slice(0, input.indexOf(' '))
@@ -127,6 +127,7 @@ function specialFunction (input) {
   if (input.startsWith('if')) return ifParser(input)
   if (input.startsWith('define')) return defineParser(input)
   if (input.startsWith('quote')) return quoteParser(input)
+  if (input.startsWith('lambda')) return lambdaParser(input)
 }
 
 /// /// if //////////////
@@ -193,4 +194,7 @@ function quoteParser (input) {
     if (opCount === (clCount - 1)) { return input.slice(0, input.length - 1) } else { return 'invalid quote' }
   }
   return input
+}
+
+function lambdaParser(input){
 }
