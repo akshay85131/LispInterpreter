@@ -15,6 +15,15 @@ function numberParser (value) {
   else return null
 }
 
+function stringParser (input) {
+  let regEx = /^[A-Za-z]+/.exec(input)
+  let value = input.match(regEx)
+  if (value === null) { return null }
+  if (env.hasOwnProperty(value[0])) {
+    return [env[value[0]], input.slice(value[0].length, input.length)]
+  }
+  return [value[0], input.slice(value[0].length, input.length)]
+}
 let env = {
   '+': function add (input) {
     return input.reduce((acc, cur) => {
@@ -73,8 +82,40 @@ let env = {
   'pi': Math.PI
 }
 
+function ifParser (input) {
+  if (!input.includes('if')) {
+    return null
+  }
+  input = input.slice(3)
+  input = removeSpace(input)
+  let condiCheck = mainFunc(input)
+  input = input.slice((input.indexOf(')') + 1), input.length)
+  input = removeSpace(input)
+  let conseq = mainFunc(input)
+  input = input.slice((input.indexOf(')') + 1), input.length)
+  input = removeSpace(input)
+  let alt = mainFunc(input)
+  if (condiCheck[0] === true) {
+    return conseq[0]
+  } else {
+    return alt[0]
+  }
+}
+function defineParser (input) {
+  input = input.slice(7)
+  input = removeSpace(input)
+  let key = stringParser(input)
+  // input = inpu(1)
+  input = removeSpace(key[1])
+  if (input.startsWith('(')) input = evalExpressions(input)
+  let defvalue = numberParser(input)
+  env[key[0]] = defvalue[0]
+  //   console.log(env)
+  return 'property added in env'
+}
+
 function mainFunc (input) {
-  let parsers = [numberParser, evalExpressions]
+  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser]
   for (let parser of parsers) {
     let result = parser(input)
     if (result !== null) return result
@@ -100,8 +141,13 @@ function evalExpressions (input) {
     let values = mainFunc(input)
     args.push(values[0])
     input = removeSpace(values[1])
+    // input = input.slice(String(values[0]).length, input.length)
+    input = removeSpace(input)
   }
   input = removeSpace(input.slice(1))
-  return env[procedure](args)
+
+  return [env[procedure](args), input]
+  // return env[procedure](args)
 }
-console.log(mainFunc('(+ 1 (+ 5 2))'))
+console.log(mainFunc('(define r 10)'))
+console.log(mainFunc('r'))
