@@ -1,4 +1,4 @@
-
+let readline = require('readline')
 function removeSpace (input) {
   var first = input.search(/\S/)
   if (first === -1) {
@@ -173,5 +173,17 @@ function evalExpressions (input) {
   return [env[procedure](args), input]
   // return env[procedure](args)
 }
-console.log(mainFunc('(quote (+ 1 (+2 5)))'))
+
+var rl = readline.createInterface(process.stdin, process.stdout)
+rl.setPrompt('guess> ')
+rl.prompt()
+rl.on('line', function (line) {
+  if (line === 'quit') rl.close()
+  console.log(mainFunc(line))
+  rl.prompt()
+}).on('close', function () {
+  process.exit(0)
+})
+// console.log(rl)
+// console.log(mainFunc('(+ 2 (+ 6 (+ 4 8)))'))
 // console.log(mainFunc('hr'))
