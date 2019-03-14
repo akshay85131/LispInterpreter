@@ -102,6 +102,9 @@ function ifParser (input) {
   }
 }
 function defineParser (input) {
+  if (!input.includes('define')) {
+    return null
+  }
   input = input.slice(7)
   input = removeSpace(input)
   let key = stringParser(input)
@@ -114,8 +117,29 @@ function defineParser (input) {
   return 'property added in env'
 }
 
+function quoteParser (input) {
+  if (!input.includes('quote')) {
+    return null
+  }
+  input = input.slice(6)
+  let opCount = 0
+  let clCount = 0
+  input = removeSpace(input)
+  if (input.startsWith('(')) {
+    for (let i = 0; i < input.length; i++) {
+      if (input[i] === '(') {
+        opCount++
+      } else if (input[i] === ')') {
+        clCount++
+      }
+    }
+    if (opCount === (clCount - 1)) { return input.slice(0, input.length - 1) } else { return 'invalid quote' }
+  }
+  return input
+}
+
 function mainFunc (input) {
-  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser]
+  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser, quoteParser]
   for (let parser of parsers) {
     let result = parser(input)
     if (result !== null) return result
@@ -149,5 +173,5 @@ function evalExpressions (input) {
   return [env[procedure](args), input]
   // return env[procedure](args)
 }
-console.log(mainFunc('(define r 10)'))
-console.log(mainFunc('r'))
+console.log(mainFunc('(quote (+ 1 (+2 5)))'))
+// console.log(mainFunc('hr'))
