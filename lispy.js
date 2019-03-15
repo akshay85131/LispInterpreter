@@ -159,8 +159,8 @@ function lambdaParser (input) {
   if (input.startsWith('(')) {
     input = input.slice(1)
     while (!input.startsWith(')')) {
-      let argu = mainFunc(input)
-      localEnv['env']['args']['argu[0]'] = null
+      let argu = stringParser(input)
+      localEnv['env']['args'][argu[0]] = null
       input = input.slice(argu[0].length)
     }
     input = input.slice(1)
@@ -170,11 +170,24 @@ function lambdaParser (input) {
   return [localEnv, input.slice(localEnv['env']['expression'])]
 }
 
+function symbolParser (input) {
+  // input = input.slice(1)
+  // input = removeSpace(input)
+  let result = stringParser(input)
+  if (result === null) return null
+  if (env.hasOwnProperty(result[0])) {
+    if (typeof (result[0]) === 'object') {
+      return evalLambda(input)
+    }
+    return [env[result[0]], result[1]]
+  } else return null
+}
+
 function evalLambda (input) {
 }
 
 function mainFunc (input) {
-  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser, quoteParser, lambdaParser]
+  let parsers = [numberParser, symbolParser, evalExpressions, ifParser, defineParser, quoteParser, lambdaParser]
   for (let parser of parsers) {
     let result = parser(input)
     if (result !== null) return result
@@ -222,7 +235,9 @@ function evalExpressions (input) {
 // // console.log(rl)
 
 // console.log(mainFunc('(+ 2 (+ 6 (+ 4 8)))'))
-// console.log(mainFunc('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
+console.log(mainFunc('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
+console.log(env)
+console.log(mainFunc('(fact 3)'))
+// console.log(mainFunc('(define define 10'))
 // console.log(env)
-// console.log(mainFunc('(fact 3)'))
-console.log(mainFunc('(+ "pi" 3)'))
+// console.log(mainFunc('(+ define 1)'))
