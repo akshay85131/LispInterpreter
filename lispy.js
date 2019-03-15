@@ -1,4 +1,4 @@
-let readline = require('readline')
+// let readline = require('readline')
 function removeSpace (input) {
   var first = input.search(/\S/)
   if (first === -1) {
@@ -19,9 +19,9 @@ function stringParser (input) {
   let regEx = /^[A-Za-z]+/.exec(input)
   let value = input.match(regEx)
   if (value === null) { return null }
-  if (env.hasOwnProperty(value[0])) {
-    return [env[value[0]], input.slice(value[0].length, input.length)]
-  }
+  // if (env.hasOwnProperty(value[0])) {
+  //   return [env[value[0]], input.slice(value[0].length, input.length)]
+  // }
   return [value[0], input.slice(value[0].length, input.length)]
 }
 let env = {
@@ -83,10 +83,12 @@ let env = {
 }
 
 function ifParser (input) {
-  if (!input.includes('if')) {
+  input = input.slice(1)
+  input = removeSpace(input)
+  if (!input.startsWith('if')) {
     return null
   }
-  input = input.slice(3)
+  input = input.slice(2)
   input = removeSpace(input)
   let condiCheck = mainFunc(input)
   input = input.slice((input.indexOf(')') + 1), input.length)
@@ -102,26 +104,30 @@ function ifParser (input) {
   }
 }
 function defineParser (input) {
-  if (!input.includes('define')) {
+  input = input.slice(1)
+  // input = removeSpace(input)
+  if (!input.startsWith('define')) {
     return null
   }
-  input = input.slice(7)
+  input = input.slice(6)
   input = removeSpace(input)
   let key = stringParser(input)
   // input = inpu(1)
   input = removeSpace(key[1])
-  if (input.startsWith('(')) input = evalExpressions(input)
-  let defvalue = numberParser(input)
+  // if (input.startsWith('(')) input = mainFunc(input)
+  let defvalue = mainFunc(input)
   env[key[0]] = defvalue[0]
   //   console.log(env)
   return 'property added in env'
 }
 
 function quoteParser (input) {
-  if (!input.includes('quote')) {
+  input = input.slice(1)
+  input = removeSpace(input)
+  if (!input.startsWith('quote')) {
     return null
   }
-  input = input.slice(6)
+  input = input.slice(5)
   let opCount = 0
   let clCount = 0
   input = removeSpace(input)
@@ -138,8 +144,37 @@ function quoteParser (input) {
   return input
 }
 
+function lambdaParser (input) {
+  input = input.slice(1)
+  input = removeSpace(input)
+  if (!input.startsWith('lambda')) {
+    return null
+  }
+  let localEnv = {}
+  input = input.slice('6')
+  input = removeSpace(input)
+  localEnv['env'] = {}
+  localEnv['env']['parent'] = env
+  localEnv['env']['args'] = {}
+  if (input.startsWith('(')) {
+    input = input.slice(1)
+    while (!input.startsWith(')')) {
+      let argu = mainFunc(input)
+      localEnv['env']['args']['argu[0]'] = null
+      input = input.slice(argu[0].length)
+    }
+    input = input.slice(1)
+    input = removeSpace(input)
+    localEnv['env']['expression'] = input
+  }
+  return [localEnv, input.slice(localEnv['env']['expression'])]
+}
+
+function evalLambda (input) {
+}
+
 function mainFunc (input) {
-  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser, quoteParser]
+  let parsers = [numberParser, stringParser, evalExpressions, ifParser, defineParser, quoteParser, lambdaParser]
   for (let parser of parsers) {
     let result = parser(input)
     if (result !== null) return result
@@ -174,16 +209,20 @@ function evalExpressions (input) {
   // return env[procedure](args)
 }
 
-var rl = readline.createInterface(process.stdin, process.stdout)
-rl.setPrompt('guess> ')
-rl.prompt()
-rl.on('line', function (line) {
-  if (line === 'quit') rl.close()
-  console.log(mainFunc(line))
-  rl.prompt()
-}).on('close', function () {
-  process.exit(0)
-})
-// console.log(rl)
+// var rl = readline.createInterface(process.stdin, process.stdout)
+// rl.setPrompt('guess> ')
+// rl.prompt()
+// rl.on('line', function (line) {
+//   if (line === 'quit') rl.close()
+//   console.log(mainFunc(line))
+//   rl.prompt()
+// }).on('close', function () {
+//   process.exit(0)
+// })
+// // console.log(rl)
+
 // console.log(mainFunc('(+ 2 (+ 6 (+ 4 8)))'))
-// console.log(mainFunc('hr'))
+// console.log(mainFunc('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
+// console.log(env)
+// console.log(mainFunc('(fact 3)'))
+console.log(mainFunc('(+ "pi" 3)'))
